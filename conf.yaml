@@ -2,13 +2,14 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: package-pipeline-sa
-
+  namespace: default
 ---
 
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: package-pipeline-role
+  namespace: default
 rules:
 - apiGroups: ["apps"]
   resources: ["deployments"]
@@ -20,6 +21,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: package-pipeline-role-binding
+  namespace: default
 subjects:
 - kind: ServiceAccount
   name: package-pipeline-sa
@@ -35,6 +37,8 @@ kind: Pod
 metadata:
   name: package-pipeline
   namespace: default
+  labels:
+    app: package-pipeline
 spec:
   serviceAccountName: package-pipeline-sa
   containers:
@@ -46,3 +50,44 @@ spec:
         secretKeyRef:
           name: package-pipeling-secret
           key: webhook-secret
+
+---
+
+kind: Service
+apiVersion: v1
+metadata:
+  name: package-pipeline-service
+  namespace: default
+spec:
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  selector:
+    app: package-pipeline
+
+---
+
+kind: Ingress
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: package-pipeline-ingress
+  namespace: default
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - '*.loshido.me'
+        - loshido.me
+      secretName: cloudflare-tls
+  rules:
+    - host: pipeline.loshido.me
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: package-pipeline-service
+                port:
+                  number: 80

@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: package-pipeline-sa
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: package-pipeline-role
+rules:
+- apiGroups: ["apps"]
+  resources: ["deployments"]
+  verbs: ["get", "patch", "list"]
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: package-pipeline-role-binding
+subjects:
+- kind: ServiceAccount
+  name: package-pipeline-sa
+roleRef:
+  kind: Role
+  name: package-pipeline-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: package-pipeline
+  namespace: default
+spec:
+  serviceAccountName: package-pipeline-sa
+  containers:
+  - name: pipeline
+    image: ghcr.io/loshido/package-pipeline:latest
+    env:
+    - name: GITHUB_WEBHOOK_SECRET
+      valueFrom:
+        secretKeyRef:
+          name: package-pipeling-secret
+          key: webhook-secret

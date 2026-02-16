@@ -13,7 +13,7 @@ pub(self) async fn get_client() -> Result<Client> {
 pub async fn restart_from_package(package: &str) -> Result<Vec<String>> {
     let client = self::get_client().await?;
 
-    let api: Api<Deployment> = Api::all(client);
+    let api: Api<Deployment> = Api::namespaced(client, "default");
 
     let label = format!("nogata.package-pipeline={}", package);
     let lp = ListParams::default().labels(&label);

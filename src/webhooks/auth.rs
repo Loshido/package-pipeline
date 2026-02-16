@@ -20,7 +20,7 @@ fn extract_signature(headers: &HeaderMap) -> Result<&str, StatusCode> {
 }
 
 fn webhook_secret_as_hmac() -> Result<HmacSha256, StatusCode> {
-    let secret = std::env::var("GITHUB_WEBHOOK_SECRET")
+    let secret: String = std::env::var("GITHUB_WEBHOOK_SECRET")
         .expect("GITHUB_WEBHOOK_SECRET must be set");
 
     let mac = HmacSha256::new_from_slice(secret.as_bytes())

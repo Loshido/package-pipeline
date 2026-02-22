@@ -2,7 +2,7 @@ use k8s_openapi::api::apps::v1::Deployment;
 use kube::{Api, Client, api::ListParams, runtime::reflector::Lookup};
 use anyhow::{Result, Context};
 
-pub(self) async fn get_client() -> Result<Client> {
+async fn get_client() -> Result<Client> {
     let client = Client::try_default()
         .await
         .context("Unable to access in-cluster config")?;
